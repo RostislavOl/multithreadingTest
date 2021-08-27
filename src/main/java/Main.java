@@ -14,25 +14,11 @@ public class Main {
         String extension = sc.nextLine();
         File dir = new File(path);
 
-        ArrayList<String> result = new ArrayList<>();
-
-        Queue<File> fileTree = new PriorityQueue<>();
-
-        Collections.addAll(fileTree, Objects.requireNonNull(dir.listFiles()));
-
-        while (!fileTree.isEmpty()) {
-            File currentFile = fileTree.remove();
-            if (currentFile.isDirectory()) {
-                Collections.addAll(fileTree, Objects.requireNonNull(currentFile.listFiles()));
-            } else {
-                result.add(currentFile.getAbsolutePath());
-            }
-        }
+        ArrayList<String> result = fulfillFiles(dir);
         ArrayList<String> fin = new ArrayList<>();
 
         ArrayList<Future<String>> results =
                 new ArrayList<Future<String>>();
-
 
         ExecutorService exec = Executors.newCachedThreadPool();
 
@@ -51,6 +37,21 @@ public class Main {
                 exec.shutdown();
             }
 
+    }
+
+    private static ArrayList<String> fulfillFiles(File dir){
+        ArrayList<String> result = new ArrayList<>();
+        Queue<File> fileTree = new PriorityQueue<>();
+        Collections.addAll(fileTree, Objects.requireNonNull(dir.listFiles()));
+        while (!fileTree.isEmpty()) {
+            File currentFile = fileTree.remove();
+            if (currentFile.isDirectory()) {
+                Collections.addAll(fileTree, Objects.requireNonNull(currentFile.listFiles()));
+            } else {
+                result.add(currentFile.getAbsolutePath());
+            }
+        }
+        return result;
     }
 
 
