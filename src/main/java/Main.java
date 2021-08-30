@@ -1,8 +1,9 @@
-import org.apache.commons.io.FilenameUtils;
-
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class Main {
 
@@ -14,24 +15,24 @@ public class Main {
         String extension = sc.nextLine();
         File dir = new File(path);
 
-        ArrayList<String> result = fulfillFiles(dir);
-        ArrayList<String> fin = new ArrayList<>();
+        List<String> result = fulfillFiles(dir);
 
-        ArrayList<Future<String>> results =
-                new ArrayList<Future<String>>();
+        ArrayList<Future<List<String>>> results =
+                new ArrayList<Future<List<String>>>();
 
         ExecutorService exec = Executors.newCachedThreadPool();
 
-        for (int i = 0; i < 10; i++)
-            results.add(exec.submit(new TaskWithResult(extension, fin, result)));
-        for(Future<String> fs : results)
+        for (int i = 0; i < 4; i++)
+            results.add(exec.submit(new TaskWithResult(extension, result)));
+
+        for (Future<List<String>> fs : results)
             try {
                 // Вызов get() блокируется до завершения;:
                 System.out.println(fs.get());
-            } catch(InterruptedException e) {
+            } catch (InterruptedException e) {
                 System.out.println(e);
                 return;
-            } catch(ExecutionException e) {
+            } catch (ExecutionException e) {
                 System.out.println(e);
             } finally {
                 exec.shutdown();
@@ -39,8 +40,8 @@ public class Main {
 
     }
 
-    private static ArrayList<String> fulfillFiles(File dir){
-        ArrayList<String> result = new ArrayList<>();
+    private static List<String> fulfillFiles(File dir) {
+        List<String> result = new ArrayList<>();
         Queue<File> fileTree = new PriorityQueue<>();
         Collections.addAll(fileTree, Objects.requireNonNull(dir.listFiles()));
         while (!fileTree.isEmpty()) {
@@ -55,36 +56,4 @@ public class Main {
     }
 
 
-}
-
-class TaskWithResult implements Callable<String> {
-
-    public String extension;
-
-    public ArrayList<String> fin;
-
-    public ArrayList<String> res;
-
-    TaskWithResult(String extension, ArrayList<String> fin, ArrayList<String> res) {
-        this.extension = extension;
-        this.fin = fin;
-        this.res = res;
-    }
-
-    ArrayList<String> getExtFiles(String extension, List<String> files) {
-        synchronized (files) {
-            for (String fileString : files) {
-                String ext = FilenameUtils.getExtension(fileString);
-                if (extension.equals(ext)) {
-                    fin.add(fileString);
-                }
-            }
-            return fin;
-        }
-    }
-
-    @Override
-    public String call() throws Exception {
-        return getExtFiles(extension, res).toString();
-    }
 }
