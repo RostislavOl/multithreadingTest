@@ -24,7 +24,7 @@ public class TaskWithResult implements Callable<List<String>> {
                 String ext = FilenameUtils.getExtension(fileString);
                 if (extension.equals(ext)) {
                     resFiles.add(fileString);
-                    //Thread.yield();
+                    Thread.yield();
                 }
             }
             return resFiles;
